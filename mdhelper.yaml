@@ -1,0 +1,3 @@
+remoteHost: https://cdn.example.com
+workspacePrefix: /static
+workspaceDir: /some/path/to/your/blog
