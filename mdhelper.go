@@ -14,9 +14,10 @@ import (
 )
 
 type MdHelper struct {
-	RemoteHost      string `yaml:"remoteHost" toml:"image_cdn_host"`
-	WorkspacePrefix string `yaml:"workspacePrefix" toml:"workspace_prefix"`
-	WorkspaceDir    string `yaml:"workspaceDir,omitempty"`
+	RemoteHost        string `yaml:"remoteHost" toml:"image_cdn_host"`
+	WorkspacePrefix   string `yaml:"workspacePrefix" toml:"workspace_prefix"`
+	WorkspaceDir      string `yaml:"workspaceDir,omitempty"`
+	CompressPNGSuffix string `yaml:"compressPngSuffix" toml:"compress_png_suffix"`
 
 	filename string
 }
@@ -81,9 +82,10 @@ func (md *MdHelper) SetDefaults() {
 
 func (md *MdHelper) Copy() *MdHelper {
 	return &MdHelper{
-		RemoteHost:      md.RemoteHost,
-		WorkspacePrefix: md.WorkspacePrefix,
-		WorkspaceDir:    md.WorkspaceDir,
+		RemoteHost:        md.RemoteHost,
+		WorkspacePrefix:   md.WorkspacePrefix,
+		WorkspaceDir:      md.WorkspaceDir,
+		CompressPNGSuffix: md.CompressPNGSuffix,
 	}
 }
 
@@ -192,6 +194,16 @@ func (md *MdHelper) replaceImage(img *Image) string {
 	}
 
 	dest = strings.TrimLeft(dest, "/")
+
+	if md.CompressPNGSuffix != "" {
+		ext := filepath.Ext(dest)
+		if strings.ToLower(ext) == ".png" {
+			dest = strings.TrimSuffix(dest, ".png")
+			dest = dest + md.CompressPNGSuffix
+			dest = strings.TrimSuffix(dest, "!v1")
+		}
+	}
+
 	newURL := fmt.Sprintf("%s/%s", md.RemoteHost, dest)
 	return newURL
 	// newLine := strings.ReplaceAll(string(line), img.Dest, newURL)
