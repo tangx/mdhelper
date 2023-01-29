@@ -168,7 +168,7 @@ func (md *MdHelper) Replace(mdfile string) {
 
 }
 
-func (md *MdHelper) replaceImage(img *Image) string {
+func (md *MdHelper) replaceImage(img *Link) string {
 
 	dest := img.Dest
 	// 如果是图片地址, 且为完全地址
