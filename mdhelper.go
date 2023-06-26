@@ -147,9 +147,8 @@ func (md *MdHelper) Replace(mdfile string) {
 			codeblock = !codeblock
 		}
 
-		// 提取 图片地址
+		// 1. 提取 图片地址
 		img := mustMatchImage(line, codeblock)
-
 		// 如果图片地址为 nil， 则不是图片， 直接写入当前数据
 		if img != nil {
 			imgURL := helper.replaceImage(img)
@@ -157,6 +156,26 @@ func (md *MdHelper) Replace(mdfile string) {
 			md.output(buf, []byte(newLine))
 
 			continue
+		}
+
+		// 2. 提取 link 并判断是否为 「非图片」
+		// 因为 ![image]() 和 [link]() 的差别只有一个 叹号(!)。
+		// 而 regexp 并不支持 **零宽断言** 的 **前后模式**
+		// https://juejin.cn/post/7016886978540994567
+		link := mustMatchLink(line, codeblock)
+		if link != nil {
+			// 不包含 ! 为非图片， 则处理
+			if !strings.HasPrefix(link.All, `!`) {
+				if len(link.Name) == 0 {
+					link.Name = link.Title
+				}
+
+				// 处理图片
+				newDest := fmt.Sprintf(`%s "%s"`, link.Link, link.Name)
+				newLine := strings.ReplaceAll(string(line), link.Dest, newDest)
+				md.output(buf, []byte(newLine))
+				continue
+			}
 		}
 
 		md.output(buf, line)

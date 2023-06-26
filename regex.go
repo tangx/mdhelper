@@ -14,13 +14,21 @@ var (
 	imagePattern = `^!\[(?P<title>.*)?\]\((?P<dest>.*)\)`
 	imageExp     = regexp.MustCompile(imagePattern)
 
-	linkPattern = `\[(?P<title>.*)\]\((?P<dest>http(s)?:\/\/.*)\)`
+	// All: ![image](https://www.baidu.com/logo.png "ImageName")
+	// Title: image
+	// Dest: https://www.baidu.com/logo.png "ImageName"
+	// Link: https://www.baidu.com/logo.png
+	// Name: ImageName
+	linkPattern = `(?P<all>!?\[(?P<title>.*)\]\((?P<dest>(?P<link>http(s)?[\S]+)( ?"(?P<name>.*)")?)\))`
 	linkExp     = regexp.MustCompile(linkPattern)
 )
 
 type Link struct {
+	All   string
 	Title string
 	Dest  string
+	Link  string
+	Name  string
 }
 
 func mustMatchImage(input []byte, codeblock bool) *Link {
@@ -48,7 +56,11 @@ func mustMatchImage(input []byte, codeblock bool) *Link {
 	}
 }
 
-func mustMatchLink(input []byte) *Link {
+func mustMatchLink(input []byte, codeblock bool) *Link {
+	if codeblock {
+		return nil
+	}
+
 	if !linkExp.Match(input) {
 		return nil
 	}
@@ -63,7 +75,10 @@ func mustMatchLink(input []byte) *Link {
 	}
 
 	return &Link{
+		All:   result["all"],
 		Title: result["title"],
 		Dest:  result["dest"],
+		Link:  result["link"],
+		Name:  result["name"],
 	}
 }
